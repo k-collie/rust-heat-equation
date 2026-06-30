@@ -89,4 +89,3 @@ ax.set_title("1D Heat Equation solved by BTCS")
 
 plt.tight_layout()
 plt.show()
- 

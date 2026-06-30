@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 ndarray = { version = "0.17.2", default-features = false, features = ["std"] }
-ndarray-linalg = { version = "0.18.1", default-features = false, features = ["blas"] }
+ndarray-linalg = { version = "0.18.1", default-features = false, features = ["openblas-static"] }
+ndarray-npy = { version = "0.10.0", default-features = false, features = ["compressed_npz"] }

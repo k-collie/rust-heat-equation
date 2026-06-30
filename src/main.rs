@@ -1,8 +1,12 @@
-use ndarray::{self, IntoNdProducer};
-use ndarray::{s, Slice};
-use ndarray::Zip;
+use std::fs::File;
+
 use ndarray::NdProducer;
+use ndarray::Zip;
 use ndarray::prelude::*;
+use ndarray::{self, IntoNdProducer};
+use ndarray::{Slice, s};
+use ndarray_linalg::Solve;
+use ndarray_npy::create_new_npy;
 
 // -----------------------------
 // Problem parameters
@@ -19,7 +23,7 @@ const U_RIGHT: f64 = 0.0; // boundary condition at x = L
 
 fn main() {
     // -----------------------------
-// Grid
+    // Grid
     // -----------------------------
     let dx = L / (N_X as f64);
     let dt = T / (N_T as f64);
@@ -28,7 +32,7 @@ fn main() {
     let t = ndarray::Array1::linspace(0., T, N_T + 1);
 
     let r = ALPHA * dt / dx.powi(2);
-    
+
     // -----------------------------
     // Initial condition
     // -----------------------------
@@ -36,7 +40,9 @@ fn main() {
 
     let u_t0 = u.slice_mut(s![0, ..]);
 
-    ndarray::Zip::from(u_t0).and(&x).for_each(|u_x, &x| *u_x = f64::sin(x));
+    ndarray::Zip::from(u_t0)
+        .and(&x)
+        .for_each(|u_x, &x| *u_x = f64::sin(core::f64::consts::PI * x));
 
     // Apply boundary conditions
     let mut u_left_slice = u.slice_mut(s![.., 0]);
@@ -65,19 +71,25 @@ fn main() {
         }
     }
 
-    // // -----------------------------
-    // // Time stepping
-    // // -----------------------------
-    // for n in 0..N_T {
-    //     let mut b = u.slice(s![n, 1..-1]).to_owned();
-    //
-    //     // Add boundary condition contributions
-    //     *b.first_mut().unwrap() += r * U_LEFT;
-    //     *b.last_mut().unwrap() += r * U_RIGHT;
-    //
-    //     // Solve linear system
-    //     // u[n + 1, 1:-1] = np.linalg.solve(A, b)
-    //     let sol = 
-    // }
+    // -----------------------------
+    // Time stepping
+    // -----------------------------
+    for n in 0..N_T {
+        let mut b = u.slice(s![n, 1..-1]).to_owned();
 
+        // Add boundary condition contributions
+        *b.first_mut().unwrap() += r * U_LEFT;
+        *b.last_mut().unwrap() += r * U_RIGHT;
+
+        // Solve linear system
+        // u[n + 1, 1:-1] = np.linalg.solve(A, b)
+        let sol = btcs_matrix.solve_into(b).unwrap();
+        u.slice_mut(s![n + 1, 1..-1]).assign(&sol);
+    }
+
+    let mut npz_writer = ndarray_npy::NpzWriter::new(File::create("solution.npz").unwrap());
+    npz_writer.add_array("x", &x).unwrap();
+    npz_writer.add_array("t", &t).unwrap();
+    npz_writer.add_array("u", &u).unwrap();
+    npz_writer.finish().unwrap();
 }
