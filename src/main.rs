@@ -1,12 +1,7 @@
 use std::fs::File;
 
-use ndarray::NdProducer;
-use ndarray::Zip;
-use ndarray::prelude::*;
-use ndarray::{self, IntoNdProducer};
-use ndarray::{Slice, s};
+use ndarray::{prelude::*, s};
 use ndarray_linalg::Solve;
-use ndarray_npy::create_new_npy;
 
 // -----------------------------
 // Problem parameters
@@ -21,7 +16,7 @@ const N_T: usize = 100; // number of time steps
 const U_LEFT: f64 = 0.0; // boundary condition at x = 0
 const U_RIGHT: f64 = 0.0; // boundary condition at x = L
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     // -----------------------------
     // Grid
     // -----------------------------
@@ -88,9 +83,11 @@ fn main() {
     // -----------------------------
     // Save solution
     // -----------------------------
-    let mut npz_writer = ndarray_npy::NpzWriter::new(File::create("solution.npz").unwrap());
-    npz_writer.add_array("x", &x).unwrap();
-    npz_writer.add_array("t", &t).unwrap();
-    npz_writer.add_array("u", &u).unwrap();
-    npz_writer.finish().unwrap();
+    let mut npz_writer = ndarray_npy::NpzWriter::new(File::create("solution.npz")?);
+    npz_writer.add_array("x", &x)?;
+    npz_writer.add_array("t", &t)?;
+    npz_writer.add_array("u", &u)?;
+    npz_writer.finish()?;
+
+    Ok(())
 }
