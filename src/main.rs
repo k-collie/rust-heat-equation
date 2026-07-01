@@ -45,10 +45,8 @@ fn main() {
         .for_each(|u_x, &x| *u_x = f64::sin(core::f64::consts::PI * x));
 
     // Apply boundary conditions
-    let mut u_left_slice = u.slice_mut(s![.., 0]);
-    u_left_slice.iter_mut().for_each(|u| *u = U_LEFT);
-    let mut u_right_slice = u.slice_mut(s![.., -1]);
-    u_right_slice.iter_mut().for_each(|u| *u = U_RIGHT);
+    u.slice_mut(s![.., 0]).fill(U_LEFT);
+    u.slice_mut(s![.., -1]).fill(U_RIGHT);
 
     // -----------------------------
     // Build BTCS matrix
