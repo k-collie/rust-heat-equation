@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let x = ndarray::Array1::linspace(0., L, N_X + 1);
     let t = ndarray::Array1::linspace(0., T, N_T + 1);
 
-    let r = ALPHA * dt / dx.powi(2);
+    let r = ALPHA * dt / f64::powi(dx, 2);
 
     // -----------------------------
     // Initial condition
@@ -85,7 +85,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // -----------------------------
     // Save solution
     // -----------------------------
-    let mut npz_writer = ndarray_npy::NpzWriter::new(File::create("solution.npz")?);
+    let file = File::create("solution.npz")?;
+    let mut npz_writer = ndarray_npy::NpzWriter::new(file);
     npz_writer.add_array("x", &x)?;
     npz_writer.add_array("t", &t)?;
     npz_writer.add_array("u", &u)?;
