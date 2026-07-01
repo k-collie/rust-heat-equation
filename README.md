@@ -165,7 +165,7 @@ https://docs.rs/ndarray/latest/ndarray/struct.ArrayBase.html#method.zeros
 ).
 
 ```rust
-let mut zeros = ndarray::Array2::zeros((5, 10));
+let mut zeros: ndarray::Array2<f64> = ndarray::Array2::zeros((5, 10));
 ```
 
 By default variables are immutable but we used
