@@ -197,6 +197,8 @@ f64::sin(3. * core::f64::const::PI)
 
 ## Indexing
 
+Rust is zero indexed.
+
 We can index like this:
 
 ```rust
