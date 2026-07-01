@@ -87,6 +87,9 @@ fn main() {
         u.slice_mut(s![t_idx + 1, 1..-1]).assign(&sol);
     }
 
+    // -----------------------------
+    // Save solution
+    // -----------------------------
     let mut npz_writer = ndarray_npy::NpzWriter::new(File::create("solution.npz").unwrap());
     npz_writer.add_array("x", &x).unwrap();
     npz_writer.add_array("t", &t).unwrap();
