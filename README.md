@@ -5,6 +5,8 @@ to solving the 1D heat equation implicitly with
 a BTCS finite difference scheme.
 
 We aim to write a Rust version of the code in `python-solution.py`.
+You can have `python-solution.py` open alongside
+your Rust solution as you work on it.
 
 Running
 
@@ -285,21 +287,25 @@ for i in 0..=N_INTERIOR {
 }
 ```
 
-## Making main return error
+## Returning Result from main
 
 Rust lets us return errors from `main`.
 That way if we do something fallible (like creating a file),
-we can use the `?` operator make an early return on error:
+we can use the `?` operator to make an early return on error:
 
 ```rust
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file = File::create("my-file.txt")?;
-    println!("Hello world!");
+    Ok(())
 }
 ```
 
 The `Box<dyn ...>` allows us to return
 anything that implements the `std::error::Error` trait.
+
+We also made sure to return a `Result` at the end of `main`.
+If we got to the end then everything went fine, so we return `Ok(())`,
+which is the `Ok` variant of the `Result` enum containing the empty type `()`.
 
 ## Solving
 
