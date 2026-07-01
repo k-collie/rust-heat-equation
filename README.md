@@ -227,7 +227,7 @@ let big_slice = zeros.slice(s![.., 1..-1]);
 We can get mutable slices:
 
 ```rust
-let big_mutable_slice = zeros.slice(s![.., 1..-1]);
+let big_mutable_slice = zeros.slice_mut(s![.., 1..-1]);
 ```
 
 (Note we didn't use `mut` - the elements inside
@@ -236,7 +236,7 @@ the span of the slice doesn't need to change)
 
 ## Assigning to arrays
 
-If we have an array or slice we can fill it with the `fill`:
+If we have a mutable array or slice we can fill it with the `fill`:
 
 ```rust
 big_mutable_slice.fill(3.);
