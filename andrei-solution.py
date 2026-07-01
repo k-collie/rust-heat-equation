@@ -5,38 +5,38 @@ import numpy as np
 # Problem parameters
 # -----------------------------
 L = 1.0  # domain length
-alpha = 1.0  # thermal diffusivity
+ALPHA = 1.0  # thermal diffusivity
 T = 0.2  # final time
 
-Nx = 50  # number of spatial intervals
-Nt = 100  # number of time steps
+N_X = 50  # number of spatial intervals
+N_T = 100  # number of time steps
 
-u_left = 0.0  # boundary condition at x = 0
-u_right = 0.0  # boundary condition at x = L
+U_LEFT = 0.0  # boundary condition at x = 0
+U_RIGHT = 0.0  # boundary condition at x = L
 
 
 # -----------------------------
 # Grid
 # -----------------------------
-dx = L / Nx
-dt = T / Nt
+dx = L / N_X
+dt = T / N_T
 
-x = np.linspace(0, L, Nx + 1)
-t = np.linspace(0, T, Nt + 1)
+x = np.linspace(0, L, N_X + 1)
+t = np.linspace(0, T, N_T + 1)
 
-r = alpha * dt / dx**2
+r = ALPHA * dt / dx**2
 
 
 # -----------------------------
 # Initial condition
 # -----------------------------
-u = np.zeros((Nt + 1, Nx + 1))
+u = np.zeros((N_T + 1, N_X + 1))
 
 u[0, :] = np.sin(np.pi * x)
 
 # Apply boundary conditions
-u[:, 0] = u_left
-u[:, -1] = u_right
+u[:, 0] = U_LEFT
+u[:, -1] = U_RIGHT
 
 
 # -----------------------------
@@ -44,48 +44,35 @@ u[:, -1] = u_right
 # -----------------------------
 # We solve only for the interior points:
 # x_1, x_2, ..., x_{Nx-1}
-N_interior = Nx - 1
+N_interior = N_X - 1
 
-A = np.zeros((N_interior, N_interior))
+btcs_matrix = np.zeros((N_interior, N_interior))
 
 for i in range(N_interior):
-    A[i, i] = 1 + 2 * r
+    btcs_matrix[i, i] = 1 + 2 * r
 
     if i > 0:
-        A[i, i - 1] = -r
+        btcs_matrix[i, i - 1] = -r
 
     if i < N_interior - 1:
-        A[i, i + 1] = -r
+        btcs_matrix[i, i + 1] = -r
 
 
 # -----------------------------
 # Time stepping
 # -----------------------------
-for n in range(Nt):
-    b = u[n, 1:-1].copy()
+for t_idx in range(N_T):
+    b = u[t_idx, 1:-1].copy()
 
     # Add boundary condition contributions
-    b[0] += r * u_left
-    b[-1] += r * u_right
+    b[0] += r * U_LEFT
+    b[-1] += r * U_RIGHT
 
     # Solve linear system
-    u[n + 1, 1:-1] = np.linalg.solve(A, b)
+    u[t_idx + 1, 1:-1] = np.linalg.solve(btcs_matrix, b)
 
 
 # -----------------------------
-# Plot solution
+# Save solution
 # -----------------------------
-X, T_grid = np.meshgrid(x, t)
-
-fig = plt.figure(figsize=(9, 6))
-ax = fig.add_subplot(111, projection="3d")
-
-ax.plot_surface(X, T_grid, u, cmap="viridis")
-
-ax.set_xlabel("x")
-ax.set_ylabel("t")
-ax.set_zlabel("u(x,t)")
-ax.set_title("1D Heat Equation solved by BTCS")
-
-plt.tight_layout()
-plt.show()
+np.savez("solution.npz", x=x, t=t, u=u)

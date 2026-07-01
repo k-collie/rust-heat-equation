@@ -74,8 +74,8 @@ fn main() {
     // -----------------------------
     // Time stepping
     // -----------------------------
-    for n in 0..N_T {
-        let mut b = u.slice(s![n, 1..-1]).to_owned();
+    for t_idx in 0..N_T {
+        let mut b = u.slice(s![t_idx, 1..-1]).to_owned();
 
         // Add boundary condition contributions
         *b.first_mut().unwrap() += r * U_LEFT;
@@ -84,7 +84,7 @@ fn main() {
         // Solve linear system
         // u[n + 1, 1:-1] = np.linalg.solve(A, b)
         let sol = btcs_matrix.solve_into(b).unwrap();
-        u.slice_mut(s![n + 1, 1..-1]).assign(&sol);
+        u.slice_mut(s![t_idx + 1, 1..-1]).assign(&sol);
     }
 
     let mut npz_writer = ndarray_npy::NpzWriter::new(File::create("solution.npz").unwrap());
