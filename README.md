@@ -192,7 +192,7 @@ f64::powi(8., 2)
 We can do sine like this:
 
 ```rust
-f64::sin(3. * core::f64::const::PI)
+f64::sin(3. * core::f64::consts::PI)
 ```
 
 ## Indexing
