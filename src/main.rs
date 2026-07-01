@@ -69,6 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // -----------------------------
     let mut b = Array1::<f64>::zeros(N_INTERIOR);
     for t_idx in 0..N_T {
+        #[allow(clippy::reversed_empty_ranges)]
         b.assign(&u.slice(s![t_idx, 1..-1]));
         // Add boundary condition contributions
         b[0] += r * U_LEFT;
@@ -77,6 +78,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Solve linear system
         // u[n + 1, 1:-1] = np.linalg.solve(A, b)
         let sol = btcs_matrix.solve(&b)?;
+        #[allow(clippy::reversed_empty_ranges)]
         u.slice_mut(s![t_idx + 1, 1..-1]).assign(&sol);
     }
 
