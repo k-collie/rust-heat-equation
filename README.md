@@ -21,6 +21,13 @@ python plot.py
 
 # Course
 
+## Resources
+
+- [rust book](https://doc.rust-lang.org/book/)
+- [ndarray docs](https://docs.rs/ndarray/latest/ndarray/struct.ArrayBase.html)
+- [ndarray_linalg docs](https://docs.rs/ndarray-linalg/latest/ndarray_linalg/index.html)
+- [NpzWriter docs](https://docs.rs/ndarray-npy/latest/ndarray_npy/struct.NpzWriter.html)
+
 ## Installing Rust
 
 To install Rust go to [rustup.rs](https://rustup.rs/).
@@ -98,6 +105,21 @@ cat Cargo.toml
 less Cargo.lock
 ```
 
+## Importing things
+
+We need to import some things that we'll use later,
+we do this with `use`:
+
+```rust
+use std::fs::File;
+
+use ndarray::{prelude::*, s};
+use ndarray_linalg::Solve;
+```
+
+`ndarray_linalg::Solve` is a trait and must be in scope
+in order for us to use the methods it provides.
+
 ## Constants
 
 Compile time constants in Rust can be defined like this:
@@ -143,12 +165,161 @@ https://docs.rs/ndarray/latest/ndarray/struct.ArrayBase.html#method.zeros
 ).
 
 ```rust
-let mut zeros = ndarray::Array2::zeros((10, 100));
+let mut zeros = ndarray::Array2::zeros((5, 10));
 ```
 
 By default variables are immutable but we used
 `let mut` here to create a mutable variable
 so we can later write to this array.
+
+## Debug printing
+
+Rust has a macro `dbg!` which lets us print anything that implements the
+`Debug` trait (most things). This is very useful for print debugging.
+
+```rust
+dbg!(&zeros);
+```
+
+## Maths with f64
+
+We can calculate a square with an integer power like this:
+
+```rust
+f64::powi(8., 2)
+```
+
+We can do sine like this:
+
+```rust
+f64::sin(3. * core::f64::const::PI)
+```
+
+## Indexing
+
+We can index like this:
+
+```rust
+let num = zeros[[1, 3]];
+```
+
+We can assign too:
+
+```rust
+zeros[[1, 3]] = 5.;
+```
+
+## Slicing
+
+We can slice:
+
+```rust
+let small_slice = zeros.slice(s![.., 0..1]);
+```
+
+We can use `-1` to wrap round and mean the last element
+(just like python):
+
+```rust
+let big_slice = zeros.slice(s![.., 1..-1]);
+```
+
+We can get mutable slices:
+
+```rust
+let big_mutable_slice = zeros.slice(s![.., 1..-1]);
+```
+
+(Note we didn't use `mut` - the elements inside
+`big_mutable_slice` are mutable but
+the span of the slice doesn't need to change)
+
+## Assigning to arrays
+
+If we have an array or slice we can fill it with the `fill`:
+
+```rust
+big_mutable_slice.fill(3.);
+```
+
+If we have arrays or slices of the same size
+we can assign from one to the other:
+
+```rust
+let mut arr1 = ndarray::Array1::zeros(5);
+let arr2 = ndarray::Array1::ones(5);
+arr1.assign(&arr2);
+```
+
+Assign takes an immutable reference so we use `&`.
+
+## Zipping and iterators
+
+We can zip two arrays or slice together and iterate over them:
+
+```rust
+let linspaced = ndarray::Array1::linspace(0., 1., 10);
+let mut squared = ndarray::Array1::zeros(10);
+ndarray::Zip::from(&linspaced)
+    .and(&mut squared)
+    .for_each(|x, y| y = f64::powi(x, 2));
+```
+
+## for loops
+
+We can loop between `0` up to `N_INTERIOR` exclusive:
+
+```rust
+for i in 0..N_INTERIOR {
+    println!("i = {i}");
+}
+```
+
+We can loop between `0` up to `N_INTERIOR` or inclusive:
+
+```rust
+for i in 0..=N_INTERIOR {
+    println!("i = {i}");
+}
+```
+
+## Making main return error
+
+Rust lets us return errors from `main`.
+That way if we do something fallible (like creating a file),
+we can use the `?` operator make an early return on error:
+
+```rust
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let file = File::create("my-file.txt")?;
+    println!("Hello world!");
+}
+```
+
+The `Box<dyn ...>` allows us to return
+anything that implements the `std::error::Error` trait.
+
+## Solving
+
+We can solve matrix equations `Ax = b` like this:
+
+```rust
+let x = A.solve(&b)?;
+```
+
+## Writing files
+
+Once you have arrays to write,
+you can write them to a `.npz` file like this:
+
+```rust
+let file = File::create("solution.npz")?;
+let mut npz_writer = ndarray_npy::NpzWriter::new(file);
+npz_writer.add_array("x", &x)?;
+npz_writer.add_array("t", &t)?;
+npz_writer.add_array("u", &u)?;
+npz_writer.finish()?;
+```
 
 # Extension ideas
 
@@ -161,9 +332,8 @@ so we can later write to this array.
 - LU factorize matrix out of loop
 - Use a tridiagonal matrix type:
     - https://docs.rs/ndarray-linalg/latest/ndarray_linalg/tridiagonal/index.html
-- faer-rs sparse solution
-    - https://faer.veganb.tw/docs/sparse-linalg/
 - eliminate allocations in loop?
+    - check out `ndarray-linalg` `*_inplace` methods
 - lint code with clippy
     - if you have a slice like `s![1..-1]` clippy
       will think that it is empty. You can disable this warning
@@ -172,4 +342,11 @@ so we can later write to this array.
 - add some command line arguments
     - set boundary conditions?
     - https://crates.io/crates/clap
-- implement Thomas algorithm for tri-diagonal matrices
+- faer-rs sparse solution
+    - I haven't tried this yet so might not be much help
+    - https://faer.veganb.tw/docs/sparse-linalg/
+- use `thiserror` replace `Box<dyn Error>`
+    - this is an ergonomic way to make error enums,
+      which enumerate the possible ways a function can go wrong
+      and helps code which handles these errors
+    - https://crates.io/crates/thiserror
