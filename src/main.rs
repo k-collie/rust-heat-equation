@@ -1,6 +1,7 @@
 use std::fs::File;
 
-use ndarray::{prelude::*, s};
+use ndarray::s;
+use ndarray::Array1;
 use ndarray_linalg::Solve;
 
 // -----------------------------
